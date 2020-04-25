@@ -38,3 +38,17 @@ def make_reply(msg, frame):
     if msg is not None:
         reply = str(frame) + ' - has the rocket launched yet? (y/n)'
     return reply
+
+
+def display_content(chat_id, message):
+    """
+    call generate_img fn and get frame id, call send_photo fn, call send_message fn
+    :param chat_id: chat id from the bot
+    :param message: message from user
+    :return: frame id
+    """
+    photo_url, frame = generate_img()
+    bot_ob.send_photo(chat_id, photo_url)
+    reply = make_reply(message, frame)
+    bot_ob.send_message(reply, chat_id)
+    return frame
