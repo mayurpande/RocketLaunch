@@ -16,3 +16,12 @@ def check_message_contents(msg):
         return 'Response needs to be either "y" or "n"'
 
 
+def generate_img():
+    """
+    Generate a random number between 1 - 616196 and append to url to get frame
+    :return: String var URL to get frame of video
+    """
+    frame_rand = randint(1, 61696)
+    url = 'https://framex-dev.wadrid.net/api/video/Falcon%20Heavy%20Test%20Flight%20(' \
+          'Hosted%20Webcast)-wbSwFU6tY1c/frame/' + str(frame_rand)
+    return url, frame_rand
