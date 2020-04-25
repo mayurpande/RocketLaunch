@@ -82,3 +82,25 @@ def handle_start_command():
                     bot_ob.send_message('Command not detected to start a game type /start', chat_id)
 
     return update_id, chat_id, message
+
+
+def bisect_algorithm(bi_sected_list, frame):
+    """
+    Bisection (left) algorithm to sort
+    :param bi_sected_list:
+    :param frame:
+    :return:
+    """
+    inc = 0
+    bi_len = len(bi_sected_list)
+
+    while inc < bi_len:
+        mid_range = (inc + bi_len) // 2
+        if bi_sected_list[mid_range] < frame:
+            inc = mid_range + 1
+        else:
+            bi_len = mid_range
+
+    bi_sected_list.insert(inc, frame)
+
+    return bi_sected_list
