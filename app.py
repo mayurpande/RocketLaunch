@@ -25,3 +25,16 @@ def generate_img():
     url = 'https://framex-dev.wadrid.net/api/video/Falcon%20Heavy%20Test%20Flight%20(' \
           'Hosted%20Webcast)-wbSwFU6tY1c/frame/' + str(frame_rand)
     return url, frame_rand
+
+
+def make_reply(msg, frame):
+    """
+    Returns response to send to the User
+    :param msg: message var from user
+    :param frame: frame id
+    :return: string var with frame id in it
+    """
+    reply = None
+    if msg is not None:
+        reply = str(frame) + ' - has the rocket launched yet? (y/n)'
+    return reply
