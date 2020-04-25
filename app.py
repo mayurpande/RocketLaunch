@@ -52,3 +52,33 @@ def display_content(chat_id, message):
     reply = make_reply(message, frame)
     bot_ob.send_message(reply, chat_id)
     return frame
+
+
+def handle_start_command():
+    """
+    Telegram Bot only allows the bot to start with a special in-built command '/start'. In order to send messages to the
+    bot the chat_id is needed, in order to get the latest update the update_id is needed.
+    :return: chat_id, update_id, message
+    """
+    update_id = None
+    chat_id = None
+
+    true_if_message_not_start = True
+    while true_if_message_not_start is True:
+        updates = bot_ob.get_updates(update_id)
+        updates = updates["result"]
+        if updates:
+            for item in updates:
+                update_id = item["update_id"]
+                try:
+                    message = str(item["message"]["text"])
+                except:
+                    message = None
+                chat_id = item["message"]["from"]["id"]
+                if '/start' in message:
+                    bot_ob.send_message('Starting a new game', chat_id)
+                    true_if_message_not_start = False
+                else:
+                    bot_ob.send_message('Command not detected to start a game type /start', chat_id)
+
+    return update_id, chat_id, message
