@@ -87,14 +87,16 @@ def handle_start_command():
 def bisect_algorithm(bi_sected_list, frame):
     """
     Bisection (left) algorithm to sort
-    :param bi_sected_list:
-    :param frame:
-    :return:
+    :param bi_sected_list: sorted bi_sected_list (will always be greater than length 0)
+    :param frame: frame to be inserted
+    :return: new bi_sected_list where frame param has been inserted at correct index
     """
     inc = 0
     bi_len = len(bi_sected_list)
 
     while inc < bi_len:
+        # gets mid range of the length of bi_sected_list, uses that to get the value of bi_sected_list at that index
+        # then determines if frame is lower or higher. Does this until index value for frame to be inserted is found
         mid_range = (inc + bi_len) // 2
         if bi_sected_list[mid_range] < frame:
             inc = mid_range + 1
@@ -104,3 +106,76 @@ def bisect_algorithm(bi_sected_list, frame):
     bi_sected_list.insert(inc, frame)
 
     return bi_sected_list
+
+
+def get_frame_and_updates(chat_id, message, update_id):
+    """
+    Helper function to not DRY, calls fn(s): dispaly_content(), bot_ob.get_updates(), then checks updates for a new
+    message
+    :param chat_id: chat_id of the current conversation
+    :param message: message input by the user
+    :param update_id: current update_id
+    :return: chat_id, update_id, message
+    """
+    frame = display_content(chat_id, message)
+    updates = bot_ob.get_updates(update_id)
+    updates = updates["result"]
+    if updates:
+        for item in updates:
+            update_id = item["update_id"]
+            try:
+                message = str(item["message"]["text"])
+            except:
+                message = None
+    return frame, update_id, message
+
+
+def get_answers_from_users(update_id, chat_id, message):
+    """
+    Function to handle getting showing and getting content from user, whilst confirming user input is valid.
+    :param update_id: update_id of conversation
+    :param chat_id: chat_id
+    :param message: message
+    :return: N/A
+    """
+    bi_sected_list = []
+    all_content_list = []
+    inc = 0
+    while len(all_content_list) != 16:
+        # validate user input
+        if check_message_contents(message) == 'ok' or inc == 0:
+            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
+        else:
+            # If not valid show user new image and question and do not add old answer to list
+            bot_ob.send_message(check_message_contents(message), chat_id)
+            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
+            continue
+
+        # call bisection algorithm for current list and frame
+        if message == 'y' and len(bi_sected_list) > 0:
+            bi_sected_list = bisect_algorithm(bi_sected_list, frame)
+        elif message == 'y':
+            bi_sected_list.append(frame)
+        # append result to all_content list
+        if check_message_contents(message) == 'ok':
+            all_content_list.append([frame, message])
+        inc += 1
+    # Once all_content_list is 16 display to user their results
+    for content in all_content_list:
+        if 'y' in content[1]:
+            bot_ob.send_message(str(content[0]) + " the rocket did launch: " + content[1], chat_id)
+        else:
+            bot_ob.send_message(str(content[0]) + " the rocket didn't launch: " + content[1], chat_id)
+    # Display the frame the rocket was first launched.
+    bot_ob.send_message('The frame at which the rocket first launched was: ' + str(bi_sected_list[0]), chat_id)
+
+
+def main():
+
+    while True:
+        update_id, chat_id, message = handle_start_command()
+        get_answers_from_users(update_id, chat_id, message)
+
+
+if __name__ == '__main__':
+    main()
