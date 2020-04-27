@@ -16,12 +16,15 @@ def check_message_contents(msg):
         return 'Response needs to be either "y" or "n"'
 
 
-def generate_img():
+def generate_img(all_content_list):
     """
     Generate a random number between 1 - 616196 and append to url to get frame
     :return: String var URL to get frame of video
     """
     frame_rand = randint(1, 61696)
+    # keep looping until frame_rand is not in all_content_list
+    while frame_rand in all_content_list:
+        frame_rand = randint(1, 61696)
     url = 'https://framex-dev.wadrid.net/api/video/Falcon%20Heavy%20Test%20Flight%20(' \
           'Hosted%20Webcast)-wbSwFU6tY1c/frame/' + str(frame_rand)
     return url, frame_rand
@@ -40,14 +43,14 @@ def make_reply(msg, frame):
     return reply
 
 
-def display_content(chat_id, message):
+def display_content(chat_id, message, all_content_list):
     """
     call generate_img fn and get frame id, call send_photo fn, call send_message fn
     :param chat_id: chat id from the bot
     :param message: message from user
     :return: frame id
     """
-    photo_url, frame = generate_img()
+    photo_url, frame = generate_img(all_content_list)
     bot_ob.send_photo(chat_id, photo_url)
     reply = make_reply(message, frame)
     bot_ob.send_message(reply, chat_id)
@@ -124,7 +127,7 @@ def bisect_algorithm(bi_sected_list, frame):
     return bi_sected_list
 
 
-def get_frame_and_updates(chat_id, message, update_id):
+def get_frame_and_updates(chat_id, message, update_id, all_content_list):
     """
     Helper function to not DRY, calls fn(s): dispaly_content(), bot_ob.get_updates(), then checks updates for a new
     message
@@ -133,7 +136,7 @@ def get_frame_and_updates(chat_id, message, update_id):
     :param update_id: current update_id
     :return: chat_id, update_id, message
     """
-    frame = display_content(chat_id, message)
+    frame = display_content(chat_id, message, all_content_list)
     # get the latest update
     updates = bot_ob.get_updates(update_id)
     updates = updates["result"]
@@ -163,15 +166,15 @@ def get_answers_from_users(update_id, chat_id, message):
     while len(all_content_list) != 16:
         # validate user input
         if check_message_contents(message) == 'ok' or inc == 0:
-            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
+            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id, all_content_list)
         else:
             # If not valid show user new image and question and do not add old answer to list
             bot_ob.send_message(check_message_contents(message), chat_id)
-            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
+            frame, update_id, message = get_frame_and_updates(chat_id, message, update_id, all_content_list)
             # recursive loop to make sure user gives valid input
             while check_message_contents(message) != 'ok':
                 bot_ob.send_message(check_message_contents(message), chat_id)
-                frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
+                frame, update_id, message = get_frame_and_updates(chat_id, message, update_id, all_content_list)
         # call bisection algorithm for current list and frame
         if message == 'y' and len(bi_sected_list) > 0:
             bi_sected_list = bisect_algorithm(bi_sected_list, frame)

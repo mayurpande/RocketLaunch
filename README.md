@@ -59,7 +59,7 @@ Then open up telegram bot and run the bot.
 
 ## Release History 
 
-* 0.1 
+* 0.0.2
 
 
 
