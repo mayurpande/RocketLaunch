@@ -54,6 +54,21 @@ def display_content(chat_id, message):
     return frame
 
 
+def get_updates_set_update_id_and_message(update_id, message):
+
+    updates = bot_ob.get_updates(update_id)
+    updates = updates["result"]
+    if updates:
+        for item in updates:
+            update_id = item["update_id"]
+            try:
+                message = str(item["message"]["text"])
+            except:
+                message = None
+
+    return update_id, message
+
+
 def handle_start_command():
     """
     Telegram Bot only allows the bot to start with a special in-built command '/start'. In order to send messages to the
@@ -75,11 +90,12 @@ def handle_start_command():
                 except:
                     message = None
                 chat_id = item["message"]["from"]["id"]
+                # check for start message if true end loop
                 if '/start' in message:
                     bot_ob.send_message('Starting a new game', chat_id)
                     true_if_message_not_start = False
                 else:
-                    bot_ob.send_message('Command not detected to start a game type /start', chat_id)
+                    bot_ob.send_message('To start a game type /start', chat_id)
 
     return update_id, chat_id, message
 
@@ -118,15 +134,18 @@ def get_frame_and_updates(chat_id, message, update_id):
     :return: chat_id, update_id, message
     """
     frame = display_content(chat_id, message)
+    # get the latest update
     updates = bot_ob.get_updates(update_id)
     updates = updates["result"]
     if updates:
         for item in updates:
+            # set update_id and message (if there are any)
             update_id = item["update_id"]
             try:
                 message = str(item["message"]["text"])
             except:
                 message = None
+
     return frame, update_id, message
 
 
@@ -149,8 +168,10 @@ def get_answers_from_users(update_id, chat_id, message):
             # If not valid show user new image and question and do not add old answer to list
             bot_ob.send_message(check_message_contents(message), chat_id)
             frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
-            continue
-
+            # recursive loop to make sure user gives valid input
+            while check_message_contents(message) != 'ok':
+                bot_ob.send_message(check_message_contents(message), chat_id)
+                frame, update_id, message = get_frame_and_updates(chat_id, message, update_id)
         # call bisection algorithm for current list and frame
         if message == 'y' and len(bi_sected_list) > 0:
             bi_sected_list = bisect_algorithm(bi_sected_list, frame)
